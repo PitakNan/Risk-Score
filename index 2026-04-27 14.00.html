@@ -176,10 +176,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:#1e2
 .risk-badge{display:inline-block;padding:2px 8px;border-radius:6px;color:#fff;font-size:11px;font-weight:700;margin:0 2px}
 /* FIN SUMMARY TABLE */
 .fin-tbl{width:100%;border-collapse:collapse;font-size:13px;background:var(--card);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
-.fin-tbl th,.fin-tbl td{padding:8px 12px;text-align:right;border:1px solid #f1f5f9;white-space:nowrap;vertical-align:top}
+.fin-tbl th,.fin-tbl td{padding:8px 12px;text-align:right;border:1px solid #f1f5f9;white-space:nowrap}
 .fin-tbl th{background:#1e3a5f;color:#fff;font-size:13px;font-weight:700;text-align:center}
 .fin-tbl th.left,.fin-tbl td.left{text-align:left}
-.fin-tbl tr.total-row td{background:#dbeafe;font-weight:700;color:#1e40af}
+.fin-tbl tr.total-row td{background:#dbeafe;font-size:14px;font-weight:700;color:#1e40af}
 .fin-tbl tr.growth-row td{background:#f0fdf4;font-size:12px;color:#16a34a;font-style:italic}
 .fin-tbl td.neg{color:#ef4444;font-weight:600}
 .fin-tbl tbody tr:not(.total-row):not(.growth-row) td.left{font-size:14px;font-weight:700;color:#1e293b}
@@ -1896,93 +1896,67 @@ function renderFinancialSummary() {
     return ` <span style="color:#ca8a04;font-size:11px">—</span>${prevTag}`;
   }
 
-  // ตัวเลขปัจจุบัน (1 column)
-  function curCell(val, isTotal) {
-    const isNeg = val < -0.001;
-    const numClr = isNeg ? '#ef4444' : (isTotal ? '#1e40af' : '#1e293b');
-    const fmtVal = isNeg
-      ? `<span style="color:#ef4444">−</span>&thinsp;${fmt(Math.abs(val))}`
-      : fmt(val);
-    return `<td style="font-size:17px;font-weight:700;color:${numClr};text-align:right">${fmtVal}</td>`;
-  }
-
-  // ตัวเลขเปรียบเทียบ + ลูกศร + % (1 column)
-  function cmpCell(curVal, refVal, hasRef, reverseColors, isTotal) {
-    if (!hasRef || Math.abs(refVal) < 0.001)
-      return `<td style="text-align:right;color:#94a3b8;font-size:11px">—</td>`;
-    const v = (curVal - refVal) / Math.abs(refVal) * 100;
-    let clr;
+  // Growth % cell — reverseColors=true for liabilities (growth = bad)
+  function pctCell(curVal, prevVal, hasPrev, reverseColors) {
+    if (!hasPrev || !prevVal) return '<span style="color:#64748b">—</span>';
+    const v = (curVal - prevVal) / Math.abs(prevVal) * 100;
+    let color;
     if (reverseColors) {
-      clr = v > 0.05 ? '#b91c1c' : v < -0.05 ? '#15803d' : '#64748b';
+      color = v > 0.005 ? '#991b1b' : v < -0.005 ? '#166534' : '#64748b';
     } else {
-      clr = v > 0.05 ? '#15803d' : v < -0.05 ? '#b91c1c' : '#64748b';
+      color = v > 0.005 ? '#166534' : v < -0.005 ? '#991b1b' : '#64748b';
     }
-    const arrow = v > 0.05 ? '▲' : v < -0.05 ? '▼' : '—';
-    const sign  = v > 0.05 ? '+' : '';
-    const refNeg = refVal < -0.001;
-    const refFmt = refNeg
-      ? `<span style="color:#ef4444">−</span>&thinsp;${fmt(Math.abs(refVal))}`
-      : fmt(refVal);
-    const numFS  = isTotal ? '14px' : '12px';
-    const numClr = refNeg ? '#ef4444' : (isTotal ? '#1e40af' : '#475569');
-    return `<td style="text-align:right">
-      <div style="font-size:${numFS};font-weight:600;color:${numClr}">${refFmt}</div>
-      <div style="color:${clr};font-weight:700;font-size:11px">${arrow} ${sign}${v.toFixed(1)}%</div>
-    </td>`;
+    const sign = v > 0.005 ? '+' : '';
+    return `<span style="color:${color};font-weight:700">${sign}${v.toFixed(2)}%</span>`;
   }
 
   const provRows = provs.map(prov => {
-    const d  = cur[prov]  || {CA:0, CL:0, NWC:0, bum:0, n:0};
-    const p  = prev[prov] || {CA:0, CL:0, NWC:0, bum:0, n:0};
-    const mo = pm[prov]   || {CA:0, CL:0, NWC:0, bum:0, n:0};
+    const d = cur[prov];
+    const p = prev[prov] || {CA:0, CL:0, NWC:0, bum:0, n:0};
     if (!d.n) return '';
-    const hp  = p.n  > 0;
-    const hpm = mo.n > 0;
+    const hp = p.n > 0;
     return `<tr>
       <td class="left" style="font-weight:600;color:#334155">${prov}</td>
-      ${curCell(d.CA,  false)} ${cmpCell(d.CA,  mo.CA,  hpm, false, false)} ${cmpCell(d.CA,  p.CA,  hp,  false, false)}
-      ${curCell(d.CL,  false)} ${cmpCell(d.CL,  mo.CL,  hpm, true,  false)} ${cmpCell(d.CL,  p.CL,  hp,  true,  false)}
-      ${curCell(d.NWC, false)} ${cmpCell(d.NWC, mo.NWC, hpm, false, false)} ${cmpCell(d.NWC, p.NWC, hp,  false, false)}
-      ${curCell(d.bum, false)} ${cmpCell(d.bum, mo.bum, hpm, false, false)} ${cmpCell(d.bum, p.bum, hp,  false, false)}
+      <td>${fmt(d.CA)}${indicator(d.CA, p.CA, hp, fmt(p.CA), false)}</td>
+      <td>${fmt(d.CL)}${indicator(d.CL, p.CL, hp, fmt(p.CL), true)}</td>
+      <td>${fmt(d.NWC)}${indicator(d.NWC, p.NWC, hp, fmt(p.NWC), false)}</td>
+      <td class="${d.bum<0?'neg':''}">${d.bum<0?'<span style="color:#ef4444">-</span> ':''}${fmt(Math.abs(d.bum))}${indicator(d.bum, p.bum, hp, fmt(p.bum), false)}</td>
     </tr>`;
   }).join('');
-
-  const gRef = hasPrevTot ? prevPeriodLabel + (yearsBack > 1 ? ` ⚠️(${yearsBack}ปี)` : '') : 'ไม่มีข้อมูล';
-  const mRef = hasPM ? pmLabel : 'ไม่มีข้อมูล';
-
-  // Sub-header row builder: 3 cols per metric
-  function subHdr(metricLabel) {
-    const th1 = `<th style="background:#0f2d52;font-size:10px;font-weight:600;min-width:80px">${metricLabel}<br><span style="font-size:9px;opacity:.8">${period}</span></th>`;
-    const th2 = `<th style="background:#1a3f6f;font-size:10px;font-weight:500;min-width:90px">MoM%<br><span style="font-size:9px;opacity:.8">เทียบ ${mRef}</span></th>`;
-    const th3 = `<th style="background:#1a3f6f;font-size:10px;font-weight:500;min-width:90px">Growth%<br><span style="font-size:9px;opacity:.8">เทียบ ${gRef}</span></th>`;
-    return th1 + th2 + th3;
-  }
 
   wrap.innerHTML = `
     <div style="overflow-x:auto">
     <table class="fin-tbl">
       <thead>
         <tr>
-          <th class="left" rowspan="2" style="vertical-align:middle;min-width:70px">จังหวัด</th>
-          <th colspan="3" style="border-bottom:1px solid rgba(255,255,255,0.25)">รวมสินทรัพย์หมุนเวียน (ล้านบาท)</th>
-          <th colspan="3" style="border-bottom:1px solid rgba(255,255,255,0.25)">รวมหนี้สินหมุนเวียน (ล้านบาท)</th>
-          <th colspan="3" style="border-bottom:1px solid rgba(255,255,255,0.25)">ทุนสำรองสุทธิ NWC (ล้านบาท)</th>
-          <th colspan="3" style="border-bottom:1px solid rgba(255,255,255,0.25)">เงินบำรุงสุทธิ (ล้านบาท)</th>
-        </tr>
-        <tr>
-          ${subHdr('สินทรัพย์')}
-          ${subHdr('หนี้สิน')}
-          ${subHdr('NWC')}
-          ${subHdr('เงินบำรุง')}
+          <th class="left" rowspan="2">จังหวัด</th>
+          <th>รวมสินทรัพย์<br>หมุนเวียน (ล้านบาท)</th>
+          <th>รวมหนี้สิน<br>หมุนเวียน (ล้านบาท)</th>
+          <th>ทุนสำรองสุทธิ<br>NWC (ล้านบาท)</th>
+          <th>เงินบำรุง<br>สุทธิ (ล้านบาท)</th>
         </tr>
       </thead>
       <tbody>
         <tr class="total-row">
           <td class="left"><strong>เขตสุขภาพที่ 1</strong></td>
-          ${curCell(totCA,  true)} ${cmpCell(totCA,  pmTotCA,  hasPM, false, true)} ${cmpCell(totCA,  prevTotCA,  hasPrevTot, false, true)}
-          ${curCell(totCL,  true)} ${cmpCell(totCL,  pmTotCL,  hasPM, true,  true)} ${cmpCell(totCL,  prevTotCL,  hasPrevTot, true,  true)}
-          ${curCell(totNWC, true)} ${cmpCell(totNWC, pmTotNWC, hasPM, false, true)} ${cmpCell(totNWC, prevTotNWC, hasPrevTot, false, true)}
-          ${curCell(totBum, true)} ${cmpCell(totBum, pmTotBum, hasPM, false, true)} ${cmpCell(totBum, prevTotBum, hasPrevTot, false, true)}
+          <td>${fmt(totCA)}${indicator(totCA, prevTotCA, hasPrevTot, fmt(prevTotCA), false)}</td>
+          <td>${fmt(totCL)}${indicator(totCL, prevTotCL, hasPrevTot, fmt(prevTotCL), true)}</td>
+          <td>${fmt(totNWC)}${indicator(totNWC, prevTotNWC, hasPrevTot, fmt(prevTotNWC), false)}</td>
+          <td class="${totBum<0?'neg':''}">${totBum<0?'<span style="color:#ef4444">-</span> ':''}${fmt(Math.abs(totBum))}${indicator(totBum, prevTotBum, hasPrevTot, fmt(prevTotBum), false)}</td>
+        </tr>
+        <tr class="growth-row" style="background:#e2e8f0">
+          <td class="left" style="color:#475569;font-weight:600">${growthLabel}</td>
+          <td>${pctCell(totCA,  prevTotCA,  hasPrevTot, false)}</td>
+          <td>${pctCell(totCL,  prevTotCL,  hasPrevTot, true)}</td>
+          <td>${pctCell(totNWC, prevTotNWC, hasPrevTot, false)}</td>
+          <td>${pctCell(totBum, prevTotBum, hasPrevTot, false)}</td>
+        </tr>
+        <tr class="growth-row" style="background:#fef9c3">
+          <td class="left" style="color:#713f12;font-weight:600">${momLabel}</td>
+          <td>${pctCell(totCA,  pmTotCA,  hasPM, false)}</td>
+          <td>${pctCell(totCL,  pmTotCL,  hasPM, true)}</td>
+          <td>${pctCell(totNWC, pmTotNWC, hasPM, false)}</td>
+          <td>${pctCell(totBum, pmTotBum, hasPM, false)}</td>
         </tr>
         ${provRows}
       </tbody>
