@@ -407,7 +407,7 @@ const IND_CFG = [
   {
     key:'NI', type:'ratio',
     name:'NI — กำไร/ขาดทุนสุทธิ (Net Income)',
-    sub:'รายได้รวม-ค่าใช้จ่ายรวม | เกณฑ์: ≥ 0 ผ่าน, < 0 ไม่ผ่าน',
+    sub:'รายได้สุทธิหลังหักค่าใช้จ่ายทั้งหมด (ล้านบาท) | เกณฑ์: ≥ 0 ผ่าน, < 0 ไม่ผ่าน',
     bands:[
       {label:'≥ 0 ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.NI != null && r.NI >= 0},
       {label:'< 0 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.NI != null && r.NI < 0},
@@ -420,7 +420,7 @@ const IND_CFG = [
   {
     key:'EBITDA', type:'ratio',
     name:'EBITDA — กำไรก่อนดอกเบี้ย ภาษี ค่าเสื่อม',
-    sub:'รายได้(ไม่รวมงบลงทุน)-ค่าใช้จ่าย(ไม่รวมค่าเสื่อมฯ) | เกณฑ์: ≥ 0 ผ่าน, < 0 ไม่ผ่าน',
+    sub:'EBITDA (ล้านบาท) | เกณฑ์: ≥ 0 ผ่าน, < 0 ไม่ผ่าน',
     bands:[
       {label:'≥ 0 ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.EBITDA != null && r.EBITDA >= 0},
       {label:'< 0 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.EBITDA != null && r.EBITDA < 0},
