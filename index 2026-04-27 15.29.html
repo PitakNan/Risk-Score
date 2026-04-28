@@ -298,7 +298,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:#1e2
   <div class="section-title">📋 ตัวชี้วัดย่อย (Risk Indicators) — คลิก ผ่าน/เฝ้าระวัง/ไม่ผ่าน เพื่อดูรายชื่อ</div>
   <div class="ind-grid" id="ind-grid"></div>
 
-  <div style="display:none">
   <div class="section-title">📊 เปรียบเทียบ Year-over-Year (สิ้นปีงบ) <span id="yoy-prov-label" style="font-weight:400;font-size:12px;color:#64748b;margin-left:8px"></span></div>
   <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center">
     <span style="font-size:11px;font-weight:600;color:#64748b">แสดง:</span>
@@ -307,7 +306,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:#1e2
   </div>
   <div class="yoy-wrap">
     <table class="yoy-table" id="yoy-table"></table>
-  </div>
   </div>
 
 
@@ -355,111 +353,116 @@ const IND_CFG = [
   {
     key:'Cash', type:'ratio',
     name:'Cash — อัตราส่วนเงินสด (Cash Ratio)',
-    sub:'เงินสดและรายการเทียบเท่า / หนี้สินหมุนเวียน | เกณฑ์: ≥ 0.8 ผ่าน, < 0.8 ไม่ผ่าน',
+    sub:'เงินสดและรายการเทียบเท่า / หนี้สินหมุนเวียน | เกณฑ์: ≥ 1.0 ผ่าน, 0.5–0.99 เฝ้าระวัง, < 0.5 ไม่ผ่าน',
     bands:[
-      {label:'≥ 0.8 ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.Cash != null && r.Cash >= 0.8},
-      {label:'< 0.8 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.Cash != null && r.Cash < 0.8},
+      {label:'≥ 1.0 ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.Cash != null && r.Cash >= 1.0},
+      {label:'0.5–0.99 เฝ้าระวัง',bg:'#fef9c3',color:'#713f12',border:'#eab308', fn: r => r.Cash != null && r.Cash >= 0.5 && r.Cash < 1.0},
+      {label:'< 0.5 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.Cash != null && r.Cash < 0.5},
     ],
-    passLabel:'ผ่าน (≥ 0.8)', failLabel:'ไม่ผ่าน (< 0.8)', warnLabel:null,
-    passFn: r => r.Cash != null && r.Cash >= 0.8,
-    warnFn: null,
-    failFn: r => r.Cash != null && r.Cash < 0.8,
+    passLabel:'ผ่าน (≥ 1.0)', failLabel:'ไม่ผ่าน (< 0.5)', warnLabel:'เฝ้าระวัง (0.5–0.99)',
+    passFn: r => r.Cash != null && r.Cash >= 1.0,
+    warnFn: r => r.Cash != null && r.Cash >= 0.5 && r.Cash < 1.0,
+    failFn: r => r.Cash != null && r.Cash < 0.5,
   },
   {
     key:'QR', type:'ratio',
     name:'QR — อัตราส่วนทุนหมุนเวียนเร็ว (Quick Ratio)',
-    sub:'(สินทรัพย์หมุนเวียน − สินค้าคงเหลือ) / หนี้สินหมุนเวียน | เกณฑ์: ≥ 1.0 ผ่าน, < 1.0 ไม่ผ่าน',
+    sub:'(สินทรัพย์หมุนเวียน − สินค้าคงเหลือ) / หนี้สินหมุนเวียน | เกณฑ์: ≥ 1.5 ผ่าน, 1.0–1.49 เฝ้าระวัง, < 1.0 ไม่ผ่าน',
     bands:[
-      {label:'≥ 1.0 ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.QR != null && r.QR >= 1.0},
+      {label:'≥ 1.5 ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.QR != null && r.QR >= 1.5},
+      {label:'1.0–1.49 เฝ้าระวัง',bg:'#fef9c3',color:'#713f12',border:'#eab308', fn: r => r.QR != null && r.QR >= 1.0 && r.QR < 1.5},
       {label:'< 1.0 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.QR != null && r.QR < 1.0},
     ],
-    passLabel:'ผ่าน (≥ 1.0)', failLabel:'ไม่ผ่าน (< 1.0)', warnLabel:null,
-    passFn: r => r.QR != null && r.QR >= 1.0,
-    warnFn: null,
+    passLabel:'ผ่าน (≥ 1.5)', failLabel:'ไม่ผ่าน (< 1.0)', warnLabel:'เฝ้าระวัง (1.0–1.49)',
+    passFn: r => r.QR != null && r.QR >= 1.5,
+    warnFn: r => r.QR != null && r.QR >= 1.0 && r.QR < 1.5,
     failFn: r => r.QR != null && r.QR < 1.0,
   },
   {
     key:'CR', type:'ratio',
     name:'CR — อัตราส่วนทุนหมุนเวียน (Current Ratio)',
-    sub:'สินทรัพย์หมุนเวียน / หนี้สินหมุนเวียน | เกณฑ์: ≥ 1.5 ผ่าน, < 1.5 ไม่ผ่าน',
+    sub:'สินทรัพย์หมุนเวียน / หนี้สินหมุนเวียน | เกณฑ์: ≥ 1.5 ผ่าน, 1.0–1.49 เฝ้าระวัง, < 1.0 ไม่ผ่าน',
     bands:[
       {label:'≥ 1.5 ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.CR != null && r.CR >= 1.5},
-      {label:'< 1.5 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.CR != null && r.CR < 1.5},
+      {label:'1.0–1.49 เฝ้าระวัง',bg:'#fef9c3',color:'#713f12',border:'#eab308', fn: r => r.CR != null && r.CR >= 1.0 && r.CR < 1.5},
+      {label:'< 1.0 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.CR != null && r.CR < 1.0},
     ],
-    passLabel:'ผ่าน (≥ 1.5)', failLabel:'ไม่ผ่าน (< 1.5)', warnLabel:null,
+    passLabel:'ผ่าน (≥ 1.5)', failLabel:'ไม่ผ่าน (< 1.0)', warnLabel:'เฝ้าระวัง (1.0–1.49)',
     passFn: r => r.CR != null && r.CR >= 1.5,
-    warnFn: null,
-    failFn: r => r.CR != null && r.CR < 1.5,
+    warnFn: r => r.CR != null && r.CR >= 1.0 && r.CR < 1.5,
+    failFn: r => r.CR != null && r.CR < 1.0,
   },
   {
     key:'NWC', type:'ratio',
     name:'NWC — เงินทุนหมุนเวียนสุทธิ (Net Working Capital)',
-    sub:'สินทรัพย์หมุนเวียน − หนี้สินหมุนเวียน (ล้านบาท) | เกณฑ์: ≥ 0 ผ่าน, < 0 ไม่ผ่าน',
+    sub:'สินทรัพย์หมุนเวียน − หนี้สินหมุนเวียน (ล้านบาท) | เกณฑ์: > 0 ผ่าน, ≤ 0 ไม่ผ่าน',
     bands:[
-      {label:'≥ 0 ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.NWC != null && r.NWC >= 0},
-      {label:'< 0 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.NWC != null && r.NWC < 0},
+      {label:'> 0 ผ่าน',     bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.NWC != null && r.NWC > 0},
+      {label:'≤ 0 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.NWC != null && r.NWC <= 0},
     ],
-    passLabel:'ผ่าน (≥ 0)', failLabel:'ไม่ผ่าน (< 0)', warnLabel:null,
-    passFn: r => r.NWC != null && r.NWC >= 0,
+    passLabel:'ผ่าน (> 0)', failLabel:'ไม่ผ่าน (≤ 0)', warnLabel:null,
+    passFn: r => r.NWC != null && r.NWC > 0,
     warnFn: null,
-    failFn: r => r.NWC != null && r.NWC < 0,
+    failFn: r => r.NWC != null && r.NWC <= 0,
   },
   {
     key:'NI', type:'ratio',
     name:'NI — กำไร/ขาดทุนสุทธิ (Net Income)',
-    sub:'รายได้สุทธิหลังหักค่าใช้จ่ายทั้งหมด (ล้านบาท) | เกณฑ์: ≥ 0 ผ่าน, < 0 ไม่ผ่าน',
+    sub:'รายได้สุทธิหลังหักค่าใช้จ่ายทั้งหมด (ล้านบาท) | เกณฑ์: ≥ 0 ผ่าน, −5 ถึง −0.01 เฝ้าระวัง, < −5 ไม่ผ่าน',
     bands:[
-      {label:'≥ 0 ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.NI != null && r.NI >= 0},
-      {label:'< 0 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.NI != null && r.NI < 0},
+      {label:'≥ 0 ผ่าน',          bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.NI != null && r.NI >= 0},
+      {label:'−5 ถึง −0.01 เฝ้าระวัง', bg:'#fef9c3',color:'#713f12',border:'#eab308', fn: r => r.NI != null && r.NI < 0 && r.NI >= -5},
+      {label:'< −5 ไม่ผ่าน',       bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.NI != null && r.NI < -5},
     ],
-    passLabel:'ผ่าน (≥ 0)', failLabel:'ไม่ผ่าน (< 0)', warnLabel:null,
+    passLabel:'ผ่าน (≥ 0)', failLabel:'ไม่ผ่าน (< −5 ล้าน)', warnLabel:'เฝ้าระวัง (−5 ถึง 0)',
     passFn: r => r.NI != null && r.NI >= 0,
-    warnFn: null,
-    failFn: r => r.NI != null && r.NI < 0,
+    warnFn: r => r.NI != null && r.NI < 0 && r.NI >= -5,
+    failFn: r => r.NI != null && r.NI < -5,
   },
   {
     key:'EBITDA', type:'ratio',
     name:'EBITDA — กำไรก่อนดอกเบี้ย ภาษี ค่าเสื่อม',
-    sub:'EBITDA (ล้านบาท) | เกณฑ์: ≥ 0 ผ่าน, < 0 ไม่ผ่าน',
+    sub:'EBITDA (ล้านบาท) | เกณฑ์: ≥ 0 ผ่าน, −3 ถึง −0.01 เฝ้าระวัง, < −3 ไม่ผ่าน',
     bands:[
-      {label:'≥ 0 ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.EBITDA != null && r.EBITDA >= 0},
-      {label:'< 0 ไม่ผ่าน', bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.EBITDA != null && r.EBITDA < 0},
+      {label:'≥ 0 ผ่าน',          bg:'#f0fdf4',color:'#15803d',border:'#86efac', fn: r => r.EBITDA != null && r.EBITDA >= 0},
+      {label:'−3 ถึง −0.01 เฝ้าระวัง', bg:'#fef9c3',color:'#713f12',border:'#eab308', fn: r => r.EBITDA != null && r.EBITDA < 0 && r.EBITDA >= -3},
+      {label:'< −3 ไม่ผ่าน',       bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444', fn: r => r.EBITDA != null && r.EBITDA < -3},
     ],
-    passLabel:'ผ่าน (≥ 0)', failLabel:'ไม่ผ่าน (< 0)', warnLabel:null,
+    passLabel:'ผ่าน (≥ 0)', failLabel:'ไม่ผ่าน (< −3 ล้าน)', warnLabel:'เฝ้าระวัง (−3 ถึง 0)',
     passFn: r => r.EBITDA != null && r.EBITDA >= 0,
-    warnFn: null,
-    failFn: r => r.EBITDA != null && r.EBITDA < 0,
+    warnFn: r => r.EBITDA != null && r.EBITDA < 0 && r.EBITDA >= -3,
+    failFn: r => r.EBITDA != null && r.EBITDA < -3,
   },
   // ── Scored indicators (0/1/2/3) ──
   {
     key:'LiI', type:'scored',
     name:'LiI — สภาพคล่อง (Liquidity Index)',
-    sub:'(0 = ดี, 1 = เฝ้าระวัง, 2 = เสี่ยง, 3 = วิกฤต)',
+    sub:'รวมคะแนนจาก CR, QR, Cash Ratio (0 = ดี, 3 = วิกฤต)',
     scores:[
-      {val:0,label:'0 — ดี',          bg:'#f0fdf4',color:'#15803d',border:'#86efac'},
-      {val:1,label:'1 — เฝ้าระวัง',   bg:'#fef9c3',color:'#713f12',border:'#eab308'},
-      {val:2,label:'2 — เสี่ยง',      bg:'#ffedd5',color:'#9a3412',border:'#f97316'},
-      {val:3,label:'3 — วิกฤต',       bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444'},
+      {val:0,label:'0 — ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac'},
+      {val:1,label:'1 — เฝ้าระวัง',bg:'#fef9c3',color:'#713f12',border:'#eab308'},
+      {val:2,label:'2 — เสี่ยง',  bg:'#ffedd5',color:'#9a3412',border:'#f97316'},
+      {val:3,label:'3 — วิกฤต',   bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444'},
     ],
   },
   {
     key:'StI', type:'scored',
     name:'StI — เสถียรภาพ (Stability Index)',
-    sub:'(0 = ดี, 1 = เสี่ยง, 2 = วิกฤต)',
+    sub:'วัดจาก NWC, Net Income (0 = ดี, 2 = วิกฤต)',
     scores:[
-      {val:0,label:'0 — ดี',        bg:'#f0fdf4',color:'#15803d',border:'#86efac'},
-      {val:1,label:'1 — เสี่ยง',    bg:'#ffedd5',color:'#9a3412',border:'#f97316'},
-      {val:2,label:'2 — วิกฤต',     bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444'},
+      {val:0,label:'0 — ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac'},
+      {val:1,label:'1 — เฝ้าระวัง',bg:'#ffedd5',color:'#9a3412',border:'#f97316'},
+      {val:2,label:'2 — วิกฤต',   bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444'},
     ],
   },
   {
     key:'SuI', type:'scored',
     name:'SuI — ความยั่งยืน (Sustainability Index)',
-    sub:'(0 = ดี, 1 = เสี่ยง, 2 = วิกฤต)',
+    sub:'วัดจาก EBITDA, เงินบำรุงคงเหลือ (0 = ดี, 2 = วิกฤต)',
     scores:[
-      {val:0,label:'0 — ดี',        bg:'#f0fdf4',color:'#15803d',border:'#86efac'},
-      {val:1,label:'1 — เสี่ยง',    bg:'#ffedd5',color:'#9a3412',border:'#f97316'},
-      {val:2,label:'2 — วิกฤต',     bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444'},
+      {val:0,label:'0 — ผ่าน',    bg:'#f0fdf4',color:'#15803d',border:'#86efac'},
+      {val:1,label:'1 — เฝ้าระวัง',bg:'#ffedd5',color:'#9a3412',border:'#f97316'},
+      {val:2,label:'2 — วิกฤต',   bg:'#fee2e2',color:'#7f1d1d',border:'#ef4444'},
     ],
   },
 ];
@@ -642,9 +645,26 @@ function renderScored(ind, total) {
     </div>`;
   }).join('');
 
+  const akPass=`ind-${ind.key}-pass`, akFail=`ind-${ind.key}-fail`;
   return `<div class="ind-card">
     <div class="ind-name">📊 ${ind.name}</div>
     <div class="ind-sub">${ind.sub}</div>
+    <div class="ind-pf">
+      <div class="pass-btn ${apFn(akPass)?'active':''}" onclick="toggleIndPF('${ind.key}','pass')">
+        <div class="pf-count">${pass.length}</div>
+        <div class="pf-label">✅ ผ่าน (= 0)</div>
+        <div class="pf-pct">${passPct}%</div>
+      </div>
+      <div class="fail-btn ${apFn(akFail)?'active':''}" onclick="toggleIndPF('${ind.key}','fail')">
+        <div class="pf-count">${fail.length}</div>
+        <div class="pf-label">❌ ไม่ผ่าน (≥ 1)</div>
+        <div class="pf-pct">${failPct}%</div>
+      </div>
+    </div>
+    <div class="ind-bar">
+      <div class="ind-bar-seg" style="width:${passPct}%;background:#22c55e"></div>
+      <div class="ind-bar-seg" style="width:${failPct}%;background:#ef4444"></div>
+    </div>
     <div class="score-row">${chips}</div>
   </div>`;
 }
@@ -669,9 +689,35 @@ function renderRatio(ind, total) {
     </div>`;
   }).join('');
 
+  const akPass=`ind-${ind.key}-pass`, akWarn=`ind-${ind.key}-warn`, akFail=`ind-${ind.key}-fail`;
+  const warnBtn = ind.warnFn ? `
+    <div class="warn-btn ${apFn(akWarn)?'active':''}" onclick="toggleRatioPF('${ind.key}','warn')">
+      <div class="pf-count">${warnItems.length}</div>
+      <div class="pf-label">⚠️ ${ind.warnLabel}</div>
+      <div class="pf-pct">${warnPct}%</div>
+    </div>` : '';
+
   return `<div class="ind-card">
     <div class="ind-name">📈 ${ind.name}</div>
     <div class="ind-sub">${ind.sub}</div>
+    <div class="ind-pf">
+      <div class="pass-btn ${apFn(akPass)?'active':''}" onclick="toggleRatioPF('${ind.key}','pass')">
+        <div class="pf-count">${passItems.length}</div>
+        <div class="pf-label">✅ ${ind.passLabel}</div>
+        <div class="pf-pct">${passPct}%</div>
+      </div>
+      ${warnBtn}
+      <div class="fail-btn ${apFn(akFail)?'active':''}" onclick="toggleRatioPF('${ind.key}','fail')">
+        <div class="pf-count">${failItems.length}</div>
+        <div class="pf-label">❌ ${ind.failLabel}</div>
+        <div class="pf-pct">${failPct}%</div>
+      </div>
+    </div>
+    <div class="ind-bar">
+      <div class="ind-bar-seg" style="width:${passPct}%;background:#22c55e"></div>
+      ${ind.warnFn?`<div class="ind-bar-seg" style="width:${warnPct}%;background:#eab308"></div>`:''}
+      <div class="ind-bar-seg" style="width:${failPct}%;background:#ef4444"></div>
+    </div>
     <div class="score-row">${chips}</div>
   </div>`;
 }
